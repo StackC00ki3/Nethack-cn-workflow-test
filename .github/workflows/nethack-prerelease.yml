@@ -21,8 +21,8 @@ env:
   # The game is compiled with a relative HACKDIR and a relative sysconf
   # path, so after extraction everything is resolved from the launcher's
   # own location and the tarball can be unpacked anywhere.
-  #   glibc  -> dynamic build against glibc (debian:12), needs ncurses at runtime
-  #   static -> static build against glibc (debian:12), no runtime deps
+  #   glibc  -> dynamic build against glibc (ubuntu 26.04), needs ncurses at runtime
+  #   static -> static build against glibc (ubuntu 26.04), no runtime deps
   LINUX_BUILD_SCRIPT: |
     set -eu
 
@@ -160,9 +160,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # amd64 / i386 build natively in 32-bit-capable containers on x86_64
-        # runners; arm64 uses the free public-repo arm64 runner natively.
-        # All builds use debian:12 (glibc); the static variant links statically.
         orthography: [s, t, tg, twp]
         arch: [amd64, i386, arm64]
         libc: [glibc, static]
@@ -209,14 +206,14 @@ jobs:
               && mv -f "$file.converted" "$file"
           done
 
-      - name: Build NetHack in debian:12 container
+      - name: Build NetHack in ubuntu 26.04 container
         run: |
           docker run --rm --platform linux/${{ matrix.arch }} \
             -v "${{ github.workspace }}:/src" -w /src \
             -e VARIANT_ARCH=${{ matrix.arch }} \
             -e VARIANT_LIBC=${{ matrix.libc }} \
             -e VARIANT_ORTHO=${{ matrix.orthography }} \
-            debian:12 /bin/sh -euc "$LINUX_BUILD_SCRIPT"
+            ubuntu:resolute-20260901 /bin/sh -euc "$LINUX_BUILD_SCRIPT"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
